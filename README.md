@@ -1,5 +1,5 @@
 # PlayPause-with-xcover-button
-Media control with the xcover button on samsung smartphones
+Media control with the xcover button on samsung smartphones.
 
 ## Functionality
 If a headset is plugged in or conected to the cell phone, the functionality dependens on the duration of the button press:
@@ -10,3 +10,7 @@ If a headset is plugged in or conected to the cell phone, the functionality depe
 | 3 sec    | Next Song     |
 | 6 sec    | Previous Song |
 | \> 6 sec | None          |
+
+
+## See also
+https://docs.samsungknox.com/dev/knox-sdk/hardware-key-remapping-isv.htm

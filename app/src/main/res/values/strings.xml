@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PlayPause</string>
+    <string name="message">If you stop the app or unplug the headset,\nthe button is disabled.\n\n<b>Functionality</b>:\n\t1 sec\t\tPlay / Pause\n\t3 sec\t\tNext Song\n\t6 sec\t\tPrevious Song\n > 6 sec\t\tNone</string>
+</resources>

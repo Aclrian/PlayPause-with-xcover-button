@@ -1,4 +1,4 @@
-# PlayPause-with-xcover-button
+# PlayPause with XCover Button
 Media control with the xcover button on samsung smartphones.
 
 ## Functionality

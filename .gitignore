@@ -182,3 +182,5 @@ replay_pid*
 
 # End of https://www.toptal.com/developers/gitignore/api/android,kotlin,intellij
 app/src/main/java/de/aclrian/playpause/comments.txt
+
+megalinter-reports/

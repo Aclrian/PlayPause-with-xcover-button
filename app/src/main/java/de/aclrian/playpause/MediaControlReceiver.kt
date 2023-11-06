@@ -163,6 +163,7 @@ class MediaControlReceiver : BroadcastReceiver() {
         )
         audioManager.dispatchMediaKeyEvent(prevUpEvent)
         if (noReplay) {
+            // wait a short time until the start of the new events
             Thread.sleep(0, 1)
             audioManager.dispatchMediaKeyEvent(prevDownEvent)
             audioManager.dispatchMediaKeyEvent(prevUpEvent)

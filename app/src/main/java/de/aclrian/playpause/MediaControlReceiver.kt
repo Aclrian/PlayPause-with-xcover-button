@@ -27,20 +27,24 @@ class MediaControlReceiver : BroadcastReceiver() {
     private var startTime = -1L
 
     /**
-    If noReplay is true, the previous button will be pressed
-    two times to assure that the previous song will be played
-    instead of a replay of the current song from the beginning.
-    Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
+     If noReplay is true, the previous button will be pressed
+     two times to assure that the previous song will be played
+     instead of a replay of the current song from the beginning.
+     Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
      **/
     val noReplay = true
 
-
     enum class Duration(val time: Long) {
-        SHORT(1000L), MEDIUM(2000L), LONG(3000L), EXTRA_LONG(4000L)
+        SHORT(1000L),
+        MEDIUM(2000L),
+        LONG(3000L),
+        EXTRA_LONG(4000L),
     }
 
-
-    override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
         val keyCode = intent.getIntExtra(BUTTON_TYPE, -BUTTON_DOWN)
         val keyReportType = intent.getIntExtra(IS_BUTTON_PRESSED, -BUTTON_DOWN)
 
@@ -51,31 +55,46 @@ class MediaControlReceiver : BroadcastReceiver() {
                     context.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 val audioManager =
                     context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                if (notificationManager.currentInterruptionFilter == 1 && audioManager.ringerMode == 2 && !isInLoudspeakerMode(
-                        audioManager
+                if (notificationManager.currentInterruptionFilter == 1 && audioManager.ringerMode == 2 &&
+                    !isInLoudspeakerMode(
+                        audioManager,
                     )
                 ) {
-                    Thread(Runnable {
-                        Thread.sleep(Duration.SHORT.time)
-                        if (!vibrate(context)) return@Runnable
-                        Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
-                        if (!vibrate(context)) return@Runnable
-                        Thread.sleep(Duration.LONG.time - 100 - Duration.MEDIUM.time)
-                        if (!vibrate(context)) return@Runnable
-                        Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
-                    }).start()
+                    Thread(
+                        Runnable {
+                            Thread.sleep(Duration.SHORT.time)
+                            if (!vibrate(context)) return@Runnable
+                            Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
+                            if (!vibrate(context)) return@Runnable
+                            Thread.sleep(Duration.LONG.time - 100 - Duration.MEDIUM.time)
+                            if (!vibrate(context)) return@Runnable
+                            Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
+                        },
+                    ).start()
                 }
             } else if (keyReportType == BUTTON_UP && startTime > 0) {
                 val endTime = SystemClock.uptimeMillis()
                 val duration = endTime - startTime
                 if (duration < Duration.SHORT.time) {
-                    Thread { Looper.prepare(); act(context, Duration.SHORT) }.start()
+                    Thread {
+                        Looper.prepare()
+                        act(context, Duration.SHORT)
+                    }.start()
                 } else if (duration < Duration.MEDIUM.time) {
-                    Thread { Looper.prepare(); act(context, Duration.MEDIUM) }.start()
+                    Thread {
+                        Looper.prepare()
+                        act(context, Duration.MEDIUM)
+                    }.start()
                 } else if (duration < Duration.LONG.time) {
-                    Thread { Looper.prepare(); act(context, Duration.LONG) }.start()
+                    Thread {
+                        Looper.prepare()
+                        act(context, Duration.LONG)
+                    }.start()
                 } else {
-                    Thread { Looper.prepare(); act(context, Duration.EXTRA_LONG) }.start()
+                    Thread {
+                        Looper.prepare()
+                        act(context, Duration.EXTRA_LONG)
+                    }.start()
                 }
                 startTime = -1L
             }
@@ -87,7 +106,8 @@ class MediaControlReceiver : BroadcastReceiver() {
             return false
         }
         getSystemService(
-            context, Vibrator::class.java
+            context,
+            Vibrator::class.java,
         )?.vibrate(VibrationEffect.createOneShot(100, 1))
         return true
     }
@@ -96,12 +116,15 @@ class MediaControlReceiver : BroadcastReceiver() {
         // check if the button press was intended -> should the action be performed?
         val isHeadsetConnected =
             Arrays.stream(audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)).noneMatch {
-                    it.type != AudioDeviceInfo.TYPE_BUILTIN_SPEAKER && it.type != AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
-                }
+                it.type != AudioDeviceInfo.TYPE_BUILTIN_SPEAKER && it.type != AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+            }
         return isHeadsetConnected || audioManager.availableCommunicationDevices.size == 0
     }
 
-    private fun act(context: Context, duration: Duration) {
+    private fun act(
+        context: Context,
+        duration: Duration,
+    ) {
         Log.i("PlayPause", "act " + duration.name)
         val audioManager =
             context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -126,21 +149,32 @@ class MediaControlReceiver : BroadcastReceiver() {
             Toast.makeText(
                 context,
                 Html.fromHtml(message, HtmlCompat.FROM_HTML_MODE_LEGACY),
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT,
             ).show()
         }
     }
 
     private fun pressPreviousSongButton(
-        event_time: Long, audioManager: AudioManager
+        event_time: Long,
+        audioManager: AudioManager,
     ) {
-        val prevDownEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS, 0
-        )
+        val prevDownEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(prevDownEvent)
-        val prevUpEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS, 0
-        )
+        val prevUpEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(prevUpEvent)
         if (noReplay) {
             // wait a short time until the start of the new events
@@ -150,27 +184,51 @@ class MediaControlReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun pressNextSongButton(event_time: Long, audioManager: AudioManager) {
-        val nextDownEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT, 0
-        )
+    private fun pressNextSongButton(
+        event_time: Long,
+        audioManager: AudioManager,
+    ) {
+        val nextDownEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_MEDIA_NEXT,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(nextDownEvent)
-        val nextUpEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT, 0
-        )
+        val nextUpEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_MEDIA_NEXT,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(nextUpEvent)
     }
 
     private fun pressPlayPauseButton(
-        event_time: Long, audioManager: AudioManager
+        event_time: Long,
+        audioManager: AudioManager,
     ) {
-        val ppDownEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0
-        )
+        val ppDownEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(ppDownEvent)
-        val ppUpEvent = KeyEvent(
-            event_time, event_time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0
-        )
+        val ppUpEvent =
+            KeyEvent(
+                event_time,
+                event_time,
+                KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                0,
+            )
         audioManager.dispatchMediaKeyEvent(ppUpEvent)
     }
 }

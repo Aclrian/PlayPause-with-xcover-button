@@ -5,6 +5,15 @@ on:
     tags:
       - '*.*.*'
 
+permissions:
+  actions: write
+  checks: write
+  contents: read
+  id-token: write
+  pull-requests: write
+  security-events: write
+  statuses: write
+
 jobs:
  apk:
    name: Generate APK

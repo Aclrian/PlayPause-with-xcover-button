@@ -2,7 +2,9 @@
 Media control with the xcover button on samsung smartphones.
 
 ## Functionality
-If a headset is plugged in or conected to the cell phone, the functionality dependens on the duration of the button press:
+
+If a headset is plugged in or connected to the cell phone, the functionality dependents on the
+duration of the button press:
 
 | Duration | Action        |
 |----------|---------------|
@@ -10,6 +12,8 @@ If a headset is plugged in or conected to the cell phone, the functionality depe
 | 3 sec    | Next Song     |
 | 6 sec    | Previous Song |
 | \> 6 sec | None          |
+
+Also, if your in a recognized Wi-Fi, a connected headphone is not needed.
 
 
 ## See also

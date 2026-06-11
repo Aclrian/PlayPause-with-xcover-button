@@ -18,19 +18,20 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.text.HtmlCompat
 import java.util.Arrays
 
+
 private const val IS_BUTTON_PRESSED = "com.samsung.android.knox.intent.extra.KEY_REPORT_TYPE"
 private const val BUTTON_TYPE = "com.samsung.android.knox.intent.extra.KEY_CODE"
 private const val BUTTON_DOWN = 1
 private const val BUTTON_UP = 2
 
-class MediaControlReceiver : BroadcastReceiver() {
+class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiver() {
     private var startTime = -1L
 
     /**
-     If noReplay is true, the previous button will be pressed
-     two times to assure that the previous song will be played
-     instead of a replay of the current song from the beginning.
-     Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
+    If noReplay is true, the previous button will be pressed
+    two times to assure that the previous song will be played
+    instead of a replay of the current song from the beginning.
+    Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
      **/
     val noReplay = true
 
@@ -56,9 +57,7 @@ class MediaControlReceiver : BroadcastReceiver() {
                 val audioManager =
                     context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 if (notificationManager.currentInterruptionFilter == 1 && audioManager.ringerMode == 2 &&
-                    !isInLoudspeakerMode(
-                        audioManager,
-                    )
+                    (!inSpeakerMode(audioManager) || networkChecker.trustedSSID)
                 ) {
                     Thread(
                         Runnable {
@@ -112,7 +111,7 @@ class MediaControlReceiver : BroadcastReceiver() {
         return true
     }
 
-    private fun isInLoudspeakerMode(audioManager: AudioManager): Boolean {
+    private fun inSpeakerMode(audioManager: AudioManager): Boolean {
         // check if the button press was intended -> should the action be performed?
         val isHeadsetConnected =
             Arrays.stream(audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)).noneMatch {
@@ -129,19 +128,22 @@ class MediaControlReceiver : BroadcastReceiver() {
         val audioManager =
             context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val eventTime = SystemClock.uptimeMillis()
-        if (isInLoudspeakerMode(audioManager)) {
+        if (inSpeakerMode(audioManager) && !networkChecker.trustedSSID) {
             Toast.makeText(context, "skipped", Toast.LENGTH_SHORT).show()
         } else {
             when (duration) {
                 Duration.SHORT -> {
                     pressPlayPauseButton(eventTime, audioManager)
                 }
+
                 Duration.MEDIUM -> {
                     pressNextSongButton(eventTime, audioManager)
                 }
+
                 Duration.LONG -> {
                     pressPreviousSongButton(eventTime, audioManager)
                 }
+
                 Duration.EXTRA_LONG -> {}
             }
             val message =
@@ -155,13 +157,13 @@ class MediaControlReceiver : BroadcastReceiver() {
     }
 
     private fun pressPreviousSongButton(
-        event_time: Long,
+        eventTime: Long,
         audioManager: AudioManager,
     ) {
         val prevDownEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_DOWN,
                 KeyEvent.KEYCODE_MEDIA_PREVIOUS,
                 0,
@@ -169,8 +171,8 @@ class MediaControlReceiver : BroadcastReceiver() {
         audioManager.dispatchMediaKeyEvent(prevDownEvent)
         val prevUpEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_UP,
                 KeyEvent.KEYCODE_MEDIA_PREVIOUS,
                 0,
@@ -185,13 +187,13 @@ class MediaControlReceiver : BroadcastReceiver() {
     }
 
     private fun pressNextSongButton(
-        event_time: Long,
+        eventTime: Long,
         audioManager: AudioManager,
     ) {
         val nextDownEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_DOWN,
                 KeyEvent.KEYCODE_MEDIA_NEXT,
                 0,
@@ -199,8 +201,8 @@ class MediaControlReceiver : BroadcastReceiver() {
         audioManager.dispatchMediaKeyEvent(nextDownEvent)
         val nextUpEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_UP,
                 KeyEvent.KEYCODE_MEDIA_NEXT,
                 0,
@@ -209,13 +211,13 @@ class MediaControlReceiver : BroadcastReceiver() {
     }
 
     private fun pressPlayPauseButton(
-        event_time: Long,
+        eventTime: Long,
         audioManager: AudioManager,
     ) {
         val ppDownEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_DOWN,
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                 0,
@@ -223,8 +225,8 @@ class MediaControlReceiver : BroadcastReceiver() {
         audioManager.dispatchMediaKeyEvent(ppDownEvent)
         val ppUpEvent =
             KeyEvent(
-                event_time,
-                event_time,
+                eventTime,
+                eventTime,
                 KeyEvent.ACTION_UP,
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                 0,

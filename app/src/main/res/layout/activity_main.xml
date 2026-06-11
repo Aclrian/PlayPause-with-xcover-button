@@ -7,31 +7,48 @@
     android:textAlignment="center"
     tools:context=".MainActivity">
 
-    <TableRow
-        android:id="@+id/tableRow"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Space
-            android:layout_width="47dp"
-            android:layout_height="match_parent" />
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/textView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="@string/message"
+            android:textAlignment="viewStart" />
 
-            <Space
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/wifiList"
                 android:layout_width="match_parent"
-                android:layout_height="50dp" />
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/message" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/nowifi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_wifi" />
+            </LinearLayout>
+        </ScrollView>
 
-    </TableRow>
+        <Button
+            android:id="@+id/wifiAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_margin="20dp"
+            android:onClick="addCurrentNetwork"
+            android:text="@string/recognized_wifi"
+            app:icon="@drawable/baseline_add_24_foreground" />
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

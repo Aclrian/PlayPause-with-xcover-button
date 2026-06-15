@@ -21,19 +21,25 @@ class MediaControlService : Service() {
 
     private val binder = LocalBinder()
 
+    companion object {
+        const val NOTIFICATION_CHANNEL = 4242
+    }
+
     override fun onCreate() {
         super.onCreate()
         networkChecker = NetworkChecker(this)
         val channelID = "PlayPause Notification"
         val channel = NotificationChannel(channelID, channelID, NotificationManager.IMPORTANCE_MIN)
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        val notification = Notification.Builder(this, channelID)
-            .setContentText("Service is running")
-            .setContentTitle("PlayPause")
-            .setOngoing(true)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setCategory(Notification.CATEGORY_SERVICE)
-        startForeground(4242, notification.build())
+        val notification =
+            Notification
+                .Builder(this, channelID)
+                .setContentText("Service is running")
+                .setContentTitle("PlayPause")
+                .setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setCategory(Notification.CATEGORY_SERVICE)
+        startForeground(NOTIFICATION_CHANNEL, notification.build())
 
         receiver = MediaControlReceiver(networkChecker)
         val filter = IntentFilter("com.samsung.android.knox.intent.action.HARD_KEY_REPORT")
@@ -46,9 +52,7 @@ class MediaControlService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent): IBinder {
-        return binder
-    }
+    override fun onBind(intent: Intent): IBinder = binder
 
     fun configChanged() {
         networkChecker.updateRegistration()

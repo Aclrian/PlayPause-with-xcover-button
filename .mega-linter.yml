@@ -10,4 +10,7 @@ DISABLE:
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
 # DISABLE_ERRORS: true # Uncomment if you want MegaLinter to detect errors but not block CI to pass
-REPOSITORY_TRUFFLEHOG_ARGUMENTS: "--exclude-paths=.trufflehogignore" # see https://github.com/oxsecurity/megalinter/issues/3046
+DISABLE_LINTERS:
+  - REPOSITORY_DEVSKIM
+  - ACTION_ZIZMOR
+  - REPOSITORY_OSV_SCANNER

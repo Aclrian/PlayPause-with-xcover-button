@@ -16,25 +16,27 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isEmpty
 
-
 class MainActivity : AppCompatActivity() {
-
     private lateinit var configManager: ConfigManager
     private var mediaControlService: MediaControlService? = null
     private var isBound = false
 
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MediaControlService.LocalBinder
-            mediaControlService = binder.getService()
-            isBound = true
-        }
+    private val connection =
+        object : ServiceConnection {
+            override fun onServiceConnected(
+                className: ComponentName,
+                service: IBinder,
+            ) {
+                val binder = service as MediaControlService.LocalBinder
+                mediaControlService = binder.getService()
+                isBound = true
+            }
 
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mediaControlService = null
-            isBound = false
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                mediaControlService = null
+                isBound = false
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,11 +75,15 @@ class MainActivity : AppCompatActivity() {
             if (ssid.startsWith("\"") and ssid.endsWith("\"")) {
                 ssidName = ssid.substring(1, ssid.length - 1)
             }
-            wifiList.addView(createSsidTextItem(ssidName, {
-                confirmDeletion(ssid)
-                true
-            }
-            ))
+            wifiList.addView(
+                createSsidTextItem(
+                    ssidName,
+                    {
+                        confirmDeletion(ssid)
+                        true
+                    },
+                ),
+            )
         }
         if (wifiList.isEmpty()) {
             wifiList.addView(createSsidTextItem(getString(R.string.no_wifi)))
@@ -87,13 +93,14 @@ class MainActivity : AppCompatActivity() {
     fun createSsidTextItem(
         text: String,
         longClickListener: View.OnLongClickListener? = null,
-        padding: Int = (16 * resources.displayMetrics.density).toInt()
+        padding: Int = (16 * resources.displayMetrics.density).toInt(),
     ): TextView {
         val ssidView = TextView(this)
-        ssidView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+        ssidView.layoutParams =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
         ssidView.text = text
         ssidView.textSize = 18f
         ssidView.setPadding(padding, padding, padding, padding)
@@ -111,19 +118,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun confirmDeletion(ssid: String) {
-        AlertDialog.Builder(this)
+        AlertDialog
+            .Builder(this)
             .setTitle(getString(R.string.remove_wifi_start) + " $ssid" + getString(R.string.remove_wifi_end))
             .setPositiveButton(
-                R.string.ok
+                R.string.ok,
             ) { _, _ ->
                 configManager.removeSsid(ssid)
                 buildWifiList(configManager.getSsids())
                 mediaControlService?.configChanged()
-            }
-            .setNegativeButton(R.string.cancel) { _, _ ->
-                //omitted
-            }
-            .show()
+            }.setNegativeButton(R.string.cancel) { _, _ ->
+                // omitted
+            }.show()
     }
 
     companion object {
@@ -136,34 +142,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addCurrentNetwork(view: View) {
+    fun addCurrentNetwork(
+        @Suppress("UNUSED_PARAMETER") view: View,
+    ) {
         val ssidInsertView = EditText(this)
         ssidInsertView.setText(mediaControlService?.receiver?.networkChecker?.currentSSID ?: "")
         val margin = (30 * resources.displayMetrics.density).toInt()
         val container = FrameLayout(this)
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT
-        )
+        val params =
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+            )
         params.marginStart = margin
         params.marginEnd = margin
         ssidInsertView.layoutParams = params
         container.addView(ssidInsertView)
 
-        AlertDialog.Builder(this)
+        AlertDialog
+            .Builder(this)
             .setTitle(getString(R.string.add_wifi))
             .setView(container)
             .setPositiveButton(
-                getString(R.string.ok)
+                getString(R.string.ok),
             ) { _, _ ->
                 val ssid = ssidInsertView.text.toString()
                 configManager.saveSsid(ssid)
                 buildWifiList(configManager.getSsids())
                 mediaControlService?.configChanged()
-            }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
-                //omitted
-            }
-            .show()
+            }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
+                // omitted
+            }.show()
     }
 }

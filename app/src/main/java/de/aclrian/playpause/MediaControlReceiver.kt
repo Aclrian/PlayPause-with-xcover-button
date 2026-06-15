@@ -18,13 +18,16 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.text.HtmlCompat
 import java.util.Arrays
 
-
 private const val IS_BUTTON_PRESSED = "com.samsung.android.knox.intent.extra.KEY_REPORT_TYPE"
 private const val BUTTON_TYPE = "com.samsung.android.knox.intent.extra.KEY_CODE"
 private const val BUTTON_DOWN = 1
 private const val BUTTON_UP = 2
 
-class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiver() {
+private const val BUTTON_ID = 1015
+
+class MediaControlReceiver(
+    val networkChecker: NetworkChecker,
+) : BroadcastReceiver() {
     private var startTime = -1L
 
     /**
@@ -35,7 +38,9 @@ class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiv
      **/
     val noReplay = true
 
-    enum class Duration(val time: Long) {
+    enum class Duration(
+        val time: Long,
+    ) {
         SHORT(1000L),
         MEDIUM(2000L),
         LONG(3000L),
@@ -49,27 +54,15 @@ class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiv
         val keyCode = intent.getIntExtra(BUTTON_TYPE, -BUTTON_DOWN)
         val keyReportType = intent.getIntExtra(IS_BUTTON_PRESSED, -BUTTON_DOWN)
 
-        if (keyCode == 1015) {
+        if (keyCode == BUTTON_ID) {
             if (keyReportType == BUTTON_DOWN) {
                 startTime = SystemClock.uptimeMillis()
                 val notificationManager =
                     context.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 val audioManager =
                     context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                if (notificationManager.currentInterruptionFilter == 1 && audioManager.ringerMode == 2 &&
-                    (!inSpeakerMode(audioManager) || networkChecker.trustedSSID)
-                ) {
-                    Thread(
-                        Runnable {
-                            Thread.sleep(Duration.SHORT.time)
-                            if (!vibrate(context)) return@Runnable
-                            Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
-                            if (!vibrate(context)) return@Runnable
-                            Thread.sleep(Duration.LONG.time - 100 - Duration.MEDIUM.time)
-                            if (!vibrate(context)) return@Runnable
-                            Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
-                        },
-                    ).start()
+                if (validAction(notificationManager, audioManager)) {
+                    Thread { vibrateDuringPressing(context) }.start()
                 }
             } else if (keyReportType == BUTTON_UP && startTime > 0) {
                 val endTime = SystemClock.uptimeMillis()
@@ -98,6 +91,29 @@ class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiv
                 startTime = -1L
             }
         }
+    }
+
+    private fun validAction(
+        notificationManager: NotificationManager,
+        audioManager: AudioManager,
+    ): Boolean {
+        val doNotDisturbIsOff =
+            notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
+        val soundIsOn = audioManager.ringerMode == AudioManager.RINGER_MODE_NORMAL
+        val headsetOrAtHome = !inSpeakerMode(audioManager) || networkChecker.trustedSSID
+        return doNotDisturbIsOff &&
+                soundIsOn &&
+                headsetOrAtHome
+    }
+
+    private fun vibrateDuringPressing(context: Context) {
+        Thread.sleep(Duration.SHORT.time)
+        if (!vibrate(context)) return
+        Thread.sleep(Duration.MEDIUM.time - 100 - Duration.SHORT.time)
+        if (!vibrate(context)) return
+        Thread.sleep(Duration.LONG.time - 100 - Duration.MEDIUM.time)
+        if (!vibrate(context)) return
+        Thread.sleep(Duration.EXTRA_LONG.time - 100 - Duration.LONG.time)
     }
 
     private fun vibrate(context: Context): Boolean {
@@ -148,11 +164,12 @@ class MediaControlReceiver(val networkChecker: NetworkChecker) : BroadcastReceiv
             }
             val message =
                 "Action <small><i>" + duration.name.lowercase() + "</i></small>  performed"
-            Toast.makeText(
-                context,
-                Html.fromHtml(message, HtmlCompat.FROM_HTML_MODE_LEGACY),
-                Toast.LENGTH_SHORT,
-            ).show()
+            Toast
+                .makeText(
+                    context,
+                    Html.fromHtml(message, HtmlCompat.FROM_HTML_MODE_LEGACY),
+                    Toast.LENGTH_SHORT,
+                ).show()
         }
     }
 

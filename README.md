@@ -17,4 +17,5 @@ Also, if your in a recognized Wi-Fi, a connected headphone is not needed.
 
 
 ## See also
-https://docs.samsungknox.com/dev/knox-sdk/hardware-key-remapping-isv.htm
+
+<https://docs.samsungknox.com/dev/knox-sdk/hardware-key-remapping-isv.htm>

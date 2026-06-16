@@ -41,7 +41,11 @@ class NetworkChecker(
     }
 
     fun unregister() {
-        connectivityManager.unregisterNetworkCallback(networkCallback)
+        try {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        } catch (_: IllegalArgumentException) {
+            // ignore: NetworkCallback was not registered
+        }
     }
 
     fun callback(): ConnectivityManager.NetworkCallback {

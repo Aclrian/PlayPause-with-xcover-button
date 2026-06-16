@@ -9,12 +9,12 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isEmpty
+import com.google.android.material.color.MaterialColors
 
 class MainActivity : AppCompatActivity() {
     private lateinit var configManager: ConfigManager
@@ -145,19 +145,35 @@ class MainActivity : AppCompatActivity() {
     fun addCurrentNetwork(
         @Suppress("UNUSED_PARAMETER") view: View,
     ) {
+        val margin = (24 * resources.displayMetrics.density).toInt()
+        val container = LinearLayout(this)
+        container.orientation = LinearLayout.VERTICAL
+        container.setPadding(margin, margin / 2, margin, 0)
+
         val ssidInsertView = EditText(this)
-        ssidInsertView.setText(mediaControlService?.receiver?.networkChecker?.currentSSID ?: "")
-        val margin = (30 * resources.displayMetrics.density).toInt()
-        val container = FrameLayout(this)
-        val params =
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-            )
-        params.marginStart = margin
-        params.marginEnd = margin
-        ssidInsertView.layoutParams = params
+        val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
+        ssidInsertView.setText(currentSsid)
         container.addView(ssidInsertView)
+
+        if (currentSsid.isEmpty()) {
+            val warning = TextView(this)
+            warning.text = getString(R.string.warning_ssid)
+            warning.setTextColor(
+                MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorError,
+                    android.graphics.Color.RED,
+                ),
+            )
+            val warningParams =
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+            warningParams.topMargin = (8 * resources.displayMetrics.density).toInt()
+            warning.layoutParams = warningParams
+            container.addView(warning)
+        }
 
         AlertDialog
             .Builder(this)

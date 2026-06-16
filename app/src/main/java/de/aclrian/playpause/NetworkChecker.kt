@@ -61,7 +61,7 @@ class NetworkChecker(
                     if (wifi is WifiInfo) {
                         currentSSID = wifi.ssid
 
-                        if (currentSSID != WifiManager.UNKNOWN_SSID) {
+                        if (currentSSID != WifiManager.UNKNOWN_SSID && currentSSID != "<unknown SSID>") {
                             trustedSSID = configManager.getSsids().contains(currentSSID)
                             Log.d(
                                 "PlayPause",
@@ -72,6 +72,7 @@ class NetworkChecker(
                         }
                     }
                     trustedSSID = false
+                    currentSSID = ""
                     Log.d(
                         "PlayPause",
                         "Functionality based on current Network deactivated (unknown network)",

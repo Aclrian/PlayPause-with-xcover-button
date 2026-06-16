@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <style name="Theme.PlayPause" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/purple_700</item>
         <item name="colorPrimaryVariant">@color/purple_200</item>
@@ -9,5 +9,6 @@
         <item name="colorOnSecondary">@color/black</item>
          Status bar color.
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="colorError">@android:color/holo_red_dark</item>
     </style>
 </resources>

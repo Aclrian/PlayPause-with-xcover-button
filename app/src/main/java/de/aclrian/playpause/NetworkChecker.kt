@@ -10,7 +10,7 @@ import android.net.wifi.WifiManager
 import android.util.Log
 
 class NetworkChecker(
-    private val context: Context,
+    context: Context,
     var trustedSSID: Boolean = false,
 ) {
     val configManager: ConfigManager = ConfigManager(context)
@@ -50,16 +50,6 @@ class NetworkChecker(
     }
 
     fun updateCurrentSSID() {
-        val wifiManager =
-            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-
-        @Suppress("DEPRECATION")
-        val wifiInfo = wifiManager.connectionInfo
-        if (wifiInfo != null && wifiInfo.ssid != WifiManager.UNKNOWN_SSID &&
-            !wifiInfo.ssid.equals("<unknown ssid>", ignoreCase = true)
-        ) {
-            currentSSID = wifiInfo.ssid
-        }
         register()
     }
 

@@ -156,32 +156,11 @@ class MainActivity : AppCompatActivity() {
         container.setPadding(margin, margin / 2, margin, 0)
 
         val ssidInsertView = EditText(this)
-        mediaControlService?.receiver?.networkChecker?.updateCurrentSSID()
-        val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
-        ssidInsertView.setText(currentSsid)
         container.addView(ssidInsertView)
 
-        if (currentSsid.isEmpty()) {
-            val warning = TextView(this)
-            warning.text = getString(R.string.warning_ssid)
-            warning.setTextColor(
-                MaterialColors.getColor(
-                    this,
-                    com.google.android.material.R.attr.colorError,
-                    android.graphics.Color.RED,
-                ),
-            )
-            val warningParams =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-            warningParams.topMargin = (8 * resources.displayMetrics.density).toInt()
-            warning.layoutParams = warningParams
-            container.addView(warning)
-        }
+        mediaControlService?.receiver?.networkChecker?.updateCurrentSSID()
 
-        AlertDialog
+        val dialog = AlertDialog
             .Builder(this)
             .setTitle(getString(R.string.add_wifi))
             .setView(container)
@@ -194,6 +173,33 @@ class MainActivity : AppCompatActivity() {
                 mediaControlService?.configChanged()
             }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
                 // omitted
-            }.show()
+            }.create()
+
+        dialog.show()
+
+        container.postDelayed({
+            val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
+            ssidInsertView.setText(currentSsid)
+
+            if (currentSsid.isEmpty() || currentSsid.equals("<unknown ssid>", ignoreCase = true)) {
+                val warning = TextView(this)
+                warning.text = getString(R.string.warning_ssid)
+                warning.setTextColor(
+                    MaterialColors.getColor(
+                        this,
+                        com.google.android.material.R.attr.colorError,
+                        android.graphics.Color.RED,
+                    ),
+                )
+                val warningParams =
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    )
+                warningParams.topMargin = (8 * resources.displayMetrics.density).toInt()
+                warning.layoutParams = warningParams
+                container.addView(warning)
+            }
+        }, 200)
     }
 }

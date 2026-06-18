@@ -35,10 +35,10 @@ class MediaControlReceiver(
     private var startTime = -1L
 
     /**
-    If noReplay is true, the previous button will be pressed
-    two times to assure that the previous song will be played
-    instead of a replay of the current song from the beginning.
-    Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
+     If noReplay is true, the previous button will be pressed
+     two times to assure that the previous song will be played
+     instead of a replay of the current song from the beginning.
+     Else, the default behavior of KeyEvent.KEYCODE_MEDIA_PREVIOUS will be executed
      **/
     val noReplay = true
 

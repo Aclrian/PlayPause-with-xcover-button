@@ -1,3 +1,4 @@
+---
 name: Build and Release
 
 on: [push]
@@ -54,7 +55,8 @@ jobs:
             PlayPause-aligned.apk
 
       - name: Verify signature
-        run: "$ANDROID_HOME"/build-tools/34.0.0/apksigner verify --verbose "PlayPause-${{ github.ref_name }}.apk"
+        run: |
+          "$ANDROID_HOME"/build-tools/34.0.0/apksigner verify --verbose "PlayPause-${{ github.ref_name }}.apk"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

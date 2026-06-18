@@ -89,7 +89,7 @@ class NetworkChecker(
                 Log.d(
                     "PlayPause",
                     "Functionality based on current Network is " +
-                            if (trustedSSID) "activated" else "deactivated",
+                        if (trustedSSID) "activated" else "deactivated",
                 )
                 return
             }

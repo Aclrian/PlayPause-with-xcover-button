@@ -31,7 +31,8 @@ class NetworkChecker(
         }
     }
 
-    private fun register() {
+    fun register() {
+        unregister()
         val networkRequest =
             NetworkRequest
                 .Builder()
@@ -56,27 +57,7 @@ class NetworkChecker(
                     capabilities: NetworkCapabilities,
                 ) {
                     super.onCapabilitiesChanged(network, capabilities)
-
-                    val wifi = capabilities.transportInfo
-                    if (wifi is WifiInfo) {
-                        currentSSID = wifi.ssid
-
-                        if (currentSSID != WifiManager.UNKNOWN_SSID && currentSSID != "<unknown SSID>") {
-                            trustedSSID = configManager.getSsids().contains(currentSSID)
-                            Log.d(
-                                "PlayPause",
-                                "Functionality based on current Network is " +
-                                        if (trustedSSID) "activated" else "deactivated",
-                            )
-                            return
-                        }
-                    }
-                    trustedSSID = false
-                    currentSSID = ""
-                    Log.d(
-                        "PlayPause",
-                        "Functionality based on current Network deactivated (unknown network)",
-                    )
+                    updateSsid(capabilities)
                 }
 
                 override fun onLost(network: Network) {
@@ -89,5 +70,31 @@ class NetworkChecker(
                 }
             }
         return callback
+    }
+
+    private fun updateSsid(capabilities: NetworkCapabilities?) {
+        val wifi = capabilities?.transportInfo
+        if (wifi is WifiInfo) {
+            currentSSID = wifi.ssid
+
+            if (currentSSID != null &&
+                currentSSID != WifiManager.UNKNOWN_SSID &&
+                !currentSSID!!.equals("<unknown ssid>", ignoreCase = true)
+            ) {
+                trustedSSID = configManager.getSsids().contains(currentSSID)
+                Log.d(
+                    "PlayPause",
+                    "Functionality based on current Network is " +
+                            if (trustedSSID) "activated" else "deactivated",
+                )
+                return
+            }
+        }
+        trustedSSID = false
+        currentSSID = ""
+        Log.d(
+            "PlayPause",
+            "Functionality based on current Network deactivated (unknown network)",
+        )
     }
 }

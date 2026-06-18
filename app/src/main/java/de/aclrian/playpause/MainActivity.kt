@@ -28,8 +28,12 @@ class MainActivity : AppCompatActivity() {
                 service: IBinder,
             ) {
                 val binder = service as MediaControlService.LocalBinder
-                mediaControlService = binder.getService()
+                val serviceInstance = binder.getService()
+                mediaControlService = serviceInstance
                 isBound = true
+                // For adding current Wi-Fi name during the lifetime of the activity we need to register the network to listen to changes
+                // if none was added during the lifetime we can unregister it
+                serviceInstance.receiver.networkChecker.register()
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
@@ -62,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (isBound) {
+            mediaControlService?.receiver?.networkChecker?.updateRegistration()
             unbindService(connection)
             isBound = false
         }

@@ -184,3 +184,4 @@ replay_pid*
 app/src/main/java/de/aclrian/playpause/comments.txt
 
 megalinter-reports/
+/keystore.b64

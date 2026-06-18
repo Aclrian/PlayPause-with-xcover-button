@@ -14,7 +14,7 @@ import android.text.Html
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.getSystemService
 import androidx.core.text.HtmlCompat
 import java.util.Arrays
 
@@ -24,6 +24,10 @@ private const val BUTTON_DOWN = 1
 private const val BUTTON_UP = 2
 
 private const val BUTTON_ID = 1015
+
+private val Context.notificationManager get() = getSystemService<NotificationManager>()
+private val Context.audioManager get() = getSystemService<AudioManager>()
+private val Context.vibrator get() = getSystemService<Vibrator>()
 
 class MediaControlReceiver(
     val networkChecker: NetworkChecker,
@@ -57,11 +61,7 @@ class MediaControlReceiver(
         if (keyCode == BUTTON_ID) {
             if (keyReportType == BUTTON_DOWN) {
                 startTime = SystemClock.uptimeMillis()
-                val notificationManager =
-                    context.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                val audioManager =
-                    context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                if (validAction(notificationManager, audioManager)) {
+                if (validAction(context)) {
                     Thread { vibrateDuringPressing(context) }.start()
                 }
             } else if (keyReportType == BUTTON_UP && startTime > 0) {
@@ -93,17 +93,16 @@ class MediaControlReceiver(
         }
     }
 
-    private fun validAction(
-        notificationManager: NotificationManager,
-        audioManager: AudioManager,
-    ): Boolean {
+    private fun validAction(context: Context): Boolean {
+        val nm = context.notificationManager ?: return false
+        val am = context.audioManager ?: return false
+
         val doNotDisturbIsOff =
-            notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
-        val soundIsOn = audioManager.ringerMode == AudioManager.RINGER_MODE_NORMAL
-        val headsetOrAtHome = !inSpeakerMode(audioManager) || networkChecker.trustedSSID
-        return doNotDisturbIsOff &&
-                soundIsOn &&
-                headsetOrAtHome
+            nm.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
+        val soundIsOn = am.ringerMode == AudioManager.RINGER_MODE_NORMAL
+        val headsetOrAtHome = !inSpeakerMode(am) || networkChecker.trustedSSID
+
+        return doNotDisturbIsOff && soundIsOn && headsetOrAtHome
     }
 
     private fun vibrateDuringPressing(context: Context) {
@@ -117,13 +116,8 @@ class MediaControlReceiver(
     }
 
     private fun vibrate(context: Context): Boolean {
-        if (startTime < 0) {
-            return false
-        }
-        getSystemService(
-            context,
-            Vibrator::class.java,
-        )?.vibrate(VibrationEffect.createOneShot(100, 1))
+        if (startTime < 0) return false
+        context.vibrator?.vibrate(VibrationEffect.createOneShot(100, 1))
         return true
     }
 
@@ -140,30 +134,28 @@ class MediaControlReceiver(
         context: Context,
         duration: Duration,
     ) {
-        Log.i("PlayPause", "act " + duration.name)
-        val audioManager =
-            context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        Log.i("PlayPause", "act ${duration.name}")
         val eventTime = SystemClock.uptimeMillis()
-        if (!inSpeakerMode(audioManager) && !networkChecker.trustedSSID) {
+        val am = context.audioManager
+        if (am == null || !validAction(context)) {
             Toast.makeText(context, "skipped", Toast.LENGTH_SHORT).show()
         } else {
             when (duration) {
                 Duration.SHORT -> {
-                    pressPlayPauseButton(eventTime, audioManager)
+                    pressPlayPauseButton(eventTime, am)
                 }
 
                 Duration.MEDIUM -> {
-                    pressNextSongButton(eventTime, audioManager)
+                    pressNextSongButton(eventTime, am)
                 }
 
                 Duration.LONG -> {
-                    pressPreviousSongButton(eventTime, audioManager)
+                    pressPreviousSongButton(eventTime, am)
                 }
 
                 Duration.EXTRA_LONG -> {}
             }
-            val message =
-                "Action <small><i>" + duration.name.lowercase() + "</i></small>  performed"
+            val message = "Action <small><i>${duration.name.lowercase()}</i></small> performed"
             Toast
                 .makeText(
                     context,

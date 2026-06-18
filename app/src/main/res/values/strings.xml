@@ -8,5 +8,5 @@
     <string name="recognized_wifi">Recognized Wi-Fi</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="warning_ssid">Cannot access current SSID. You may need to enable location services in background.</string>
+    <string name="warning_ssid">Cannot access current SSID. You may need to enable location services in background and turn Wi-Fi of and on again.</string>
 </resources>

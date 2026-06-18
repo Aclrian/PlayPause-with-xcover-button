@@ -156,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         container.setPadding(margin, margin / 2, margin, 0)
 
         val ssidInsertView = EditText(this)
+        mediaControlService?.receiver?.networkChecker?.updateCurrentSSID()
         val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
         ssidInsertView.setText(currentSsid)
         container.addView(ssidInsertView)

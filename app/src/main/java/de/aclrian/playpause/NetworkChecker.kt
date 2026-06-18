@@ -10,7 +10,7 @@ import android.net.wifi.WifiManager
 import android.util.Log
 
 class NetworkChecker(
-    context: Context,
+    private val context: Context,
     var trustedSSID: Boolean = false,
 ) {
     val configManager: ConfigManager = ConfigManager(context)
@@ -47,6 +47,20 @@ class NetworkChecker(
         } catch (_: IllegalArgumentException) {
             // ignore: NetworkCallback was not registered
         }
+    }
+
+    fun updateCurrentSSID() {
+        val wifiManager =
+            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        @Suppress("DEPRECATION")
+        val wifiInfo = wifiManager.connectionInfo
+        if (wifiInfo != null && wifiInfo.ssid != WifiManager.UNKNOWN_SSID &&
+            !wifiInfo.ssid.equals("<unknown ssid>", ignoreCase = true)
+        ) {
+            currentSSID = wifiInfo.ssid
+        }
+        register()
     }
 
     fun callback(): ConnectivityManager.NetworkCallback {

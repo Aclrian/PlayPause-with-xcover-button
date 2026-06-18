@@ -160,20 +160,21 @@ class MainActivity : AppCompatActivity() {
 
         mediaControlService?.receiver?.networkChecker?.updateCurrentSSID()
 
-        val dialog = AlertDialog
-            .Builder(this)
-            .setTitle(getString(R.string.add_wifi))
-            .setView(container)
-            .setPositiveButton(
-                getString(R.string.ok),
-            ) { _, _ ->
-                val ssid = ssidInsertView.text.toString()
-                configManager.saveSsid(ssid)
-                buildWifiList(configManager.getSsids())
-                mediaControlService?.configChanged()
-            }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
-                // omitted
-            }.create()
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setTitle(getString(R.string.add_wifi))
+                .setView(container)
+                .setPositiveButton(
+                    getString(R.string.ok),
+                ) { _, _ ->
+                    val ssid = ssidInsertView.text.toString()
+                    configManager.saveSsid(ssid)
+                    buildWifiList(configManager.getSsids())
+                    mediaControlService?.configChanged()
+                }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
+                    // omitted
+                }.create()
 
         dialog.show()
 

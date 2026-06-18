@@ -36,25 +36,25 @@ jobs:
         run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > keystore.jks
 
       - name: List Build Tools
-        run: ls $ANDROID_HOME/build-tools/
+        run: ls "$ANDROID_HOME"/build-tools/
 
       - name: Zipalign APK
         run: |
-          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
+          "$ANDROID_HOME"/build-tools/34.0.0/zipalign -v 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk \
             PlayPause-aligned.apk
 
       - name: Sign APK
         run: |
-          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks keystore.jks \
+          "$ANDROID_HOME"/build-tools/34.0.0/apksigner sign --ks keystore.jks \
             --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-            --out PlayPause-${{ github.ref_name }}.apk \
+            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+            --out "PlayPause-${{ github.ref_name }}.apk" \
             PlayPause-aligned.apk
 
       - name: Verify signature
-        run: $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose PlayPause-${{ github.ref_name }}.apk
+        run: "$ANDROID_HOME"/build-tools/34.0.0/apksigner verify --verbose "PlayPause-${{ github.ref_name }}.apk"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

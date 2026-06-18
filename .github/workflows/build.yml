@@ -1,10 +1,12 @@
 ---
-name: Build and Release
+name: Build
 
-on: [push]
-#  push:
-#    tags:
-#      - "*.*.*"
+'on':
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
 
 permissions:
   actions: read
@@ -35,7 +37,6 @@ jobs:
         run: ./gradlew assembleRelease --stacktrace
       - name: Decode keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > keystore.jks
-
       - name: List Build Tools
         run: ls "$ANDROID_HOME"/build-tools/
 
@@ -44,7 +45,6 @@ jobs:
           "$ANDROID_HOME"/build-tools/34.0.0/zipalign -v 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk \
             PlayPause-aligned.apk
-
       - name: Sign APK
         run: |
           "$ANDROID_HOME"/build-tools/34.0.0/apksigner sign --ks keystore.jks \
@@ -53,23 +53,21 @@ jobs:
             --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
             --out "PlayPause-${{ github.ref_name }}.apk" \
             PlayPause-aligned.apk
-
       - name: Verify signature
         run: |
           "$ANDROID_HOME"/build-tools/34.0.0/apksigner verify --verbose "PlayPause-${{ github.ref_name }}.apk"
-
       - name: Upload Artifact
+        if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
-          name: PlayPause-Build
-          path: PlayPause-${{ github.ref_name }}.apk
-
-#      - name: Release APK
-#        if: startsWith(github.ref, 'refs/tags/')
-#        uses: softprops/action-gh-release@v3
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          files: PlayPause-${{ github.ref_name }}.apk
-#          generate_release_notes: true
+          name: "PlayPause-${{ github.ref_name }}"
+          path: "PlayPause-${{ github.ref_name }}.apk"
+      - name: Release APK
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref }}
+          files: "PlayPause-${{ github.ref_name }}.apk"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

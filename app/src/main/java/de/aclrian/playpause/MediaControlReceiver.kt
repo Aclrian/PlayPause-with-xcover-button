@@ -144,7 +144,7 @@ class MediaControlReceiver(
         val audioManager =
             context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val eventTime = SystemClock.uptimeMillis()
-        if (inSpeakerMode(audioManager) && !networkChecker.trustedSSID) {
+        if (!inSpeakerMode(audioManager) && !networkChecker.trustedSSID) {
             Toast.makeText(context, "skipped", Toast.LENGTH_SHORT).show()
         } else {
             when (duration) {

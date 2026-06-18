@@ -28,8 +28,12 @@ class MainActivity : AppCompatActivity() {
                 service: IBinder,
             ) {
                 val binder = service as MediaControlService.LocalBinder
-                mediaControlService = binder.getService()
+                val serviceInstance = binder.getService()
+                mediaControlService = serviceInstance
                 isBound = true
+                // For adding current Wi-Fi name during the lifetime of the activity we need to register the network to listen to changes
+                // if none was added during the lifetime we can unregister it
+                serviceInstance.receiver.networkChecker.register()
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
@@ -62,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (isBound) {
+            mediaControlService?.receiver?.networkChecker?.updateRegistration()
             unbindService(connection)
             isBound = false
         }
@@ -151,43 +156,51 @@ class MainActivity : AppCompatActivity() {
         container.setPadding(margin, margin / 2, margin, 0)
 
         val ssidInsertView = EditText(this)
-        val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
-        ssidInsertView.setText(currentSsid)
         container.addView(ssidInsertView)
 
-        if (currentSsid.isEmpty()) {
-            val warning = TextView(this)
-            warning.text = getString(R.string.warning_ssid)
-            warning.setTextColor(
-                MaterialColors.getColor(
-                    this,
-                    com.google.android.material.R.attr.colorError,
-                    android.graphics.Color.RED,
-                ),
-            )
-            val warningParams =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-            warningParams.topMargin = (8 * resources.displayMetrics.density).toInt()
-            warning.layoutParams = warningParams
-            container.addView(warning)
-        }
+        mediaControlService?.receiver?.networkChecker?.updateCurrentSSID()
 
-        AlertDialog
-            .Builder(this)
-            .setTitle(getString(R.string.add_wifi))
-            .setView(container)
-            .setPositiveButton(
-                getString(R.string.ok),
-            ) { _, _ ->
-                val ssid = ssidInsertView.text.toString()
-                configManager.saveSsid(ssid)
-                buildWifiList(configManager.getSsids())
-                mediaControlService?.configChanged()
-            }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
-                // omitted
-            }.show()
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setTitle(getString(R.string.add_wifi))
+                .setView(container)
+                .setPositiveButton(
+                    getString(R.string.ok),
+                ) { _, _ ->
+                    val ssid = ssidInsertView.text.toString()
+                    configManager.saveSsid(ssid)
+                    buildWifiList(configManager.getSsids())
+                    mediaControlService?.configChanged()
+                }.setNegativeButton(getString(R.string.cancel)) { _, _ ->
+                    // omitted
+                }.create()
+
+        dialog.show()
+
+        container.postDelayed({
+            val currentSsid = mediaControlService?.receiver?.networkChecker?.currentSSID ?: ""
+            ssidInsertView.setText(currentSsid)
+
+            if (currentSsid.isEmpty() || currentSsid.equals("<unknown ssid>", ignoreCase = true)) {
+                val warning = TextView(this)
+                warning.text = getString(R.string.warning_ssid)
+                warning.setTextColor(
+                    MaterialColors.getColor(
+                        this,
+                        com.google.android.material.R.attr.colorError,
+                        android.graphics.Color.RED,
+                    ),
+                )
+                val warningParams =
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    )
+                warningParams.topMargin = (8 * resources.displayMetrics.density).toInt()
+                warning.layoutParams = warningParams
+                container.addView(warning)
+            }
+        }, 200)
     }
 }

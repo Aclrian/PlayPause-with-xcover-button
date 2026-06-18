@@ -34,17 +34,27 @@ jobs:
         run: ./gradlew assembleRelease --stacktrace
       - name: Decode keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > keystore.jks
+
+      - name: List Build Tools
+        run: ls $ANDROID_HOME/build-tools/
+
+      - name: Zipalign APK
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
+            PlayPause-aligned.apk
+
       - name: Sign APK
         run: |
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore keystore.jks -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
-            -keypass ${{ secrets.KEY_PASSWORD }} \
-            app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
-      - name: Verify signature
-        run: jarsigner -verify -verbose -certs app/build/outputs/apk/release/app-release-unsigned.apk
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks keystore.jks \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --out PlayPause-${{ github.ref_name }}.apk \
+            PlayPause-aligned.apk
 
-      - name: Prepare Artifact
-        run: mv app/build/outputs/apk/release/app-release-unsigned.apk PlayPause-${{ github.ref_name }}.apk
+      - name: Verify signature
+        run: $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose PlayPause-${{ github.ref_name }}.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

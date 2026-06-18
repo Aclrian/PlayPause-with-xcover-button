@@ -2,7 +2,7 @@ name: Build and Release
 
 on: #[push]
   milestone: # TODO: remove placeholder
-    types: [ opened, deleted ]
+    types: [opened, deleted]
 
 permissions:
   actions: read
